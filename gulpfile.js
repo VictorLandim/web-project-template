@@ -2,27 +2,35 @@ const gulp = require('gulp');
 const sass = require('gulp-sass');
 const browserSync = require('browser-sync').create();
 
-const viewsLocation = './views/**/*.ejs';
-const sassLocation = './public/sass/**/*.scss';
-const cssLocation = './public/css/';
+const source = {
+    views: './views/**/*.ejs',
+    js: './public/js/**/*.js',
+    sass: './src/sass/**/*.scss',
+    sassMain: './src/sass/main.scss'
+};
 
-// Static Server + watching scss/html files
-gulp.task('serve', ['sass'], () => {
+const dest = {
+    css: './dist/css/'
+};
+
+// Static Server + watching files
+gulp.task('browser-sync', ['sass'], () => {
     browserSync.init(null, {
-        proxy: 'localhost:5000'
+        proxy: 'localhost:4000'
     });
-
-    gulp.watch(sassLocation, ['sass']);
-    gulp.watch(viewsLocation).on('change', browserSync.reload);
 });
 
 // Compile sass into CSS & auto-inject into browsers
 gulp.task('sass', () => {
     return gulp
-        .src(sassLocation)
-        .pipe(sass())
-        .pipe(gulp.dest(cssLocation))
+        .src(source.sassMain)
+        .pipe(sass().on('error', sass.logError))
+        .pipe(gulp.dest(dest.css))
         .pipe(browserSync.stream());
 });
 
-gulp.task('default', ['serve']);
+gulp.task('watch', ['browser-sync'], () => {
+    gulp.watch(source.sass, ['sass']);
+    gulp.watch(source.views).on('change', browserSync.reload);
+    gulp.watch(source.js).on('change', browserSync.reload);
+});
